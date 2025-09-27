@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Houston, wir haben ein... Problem.</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="container text-center mt-5 pb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="display-1">Oops!</h1>
+            <p class="lead">Die Seite hat sich anscheinend in den digitalen Äther verflüchtigt.</p>
+            <hr class="my-4">
+            <p>Es scheint, als hätten unsere Server eine spontane Kaffeepause eingelegt oder ein Eichhörnchen hat am falschen Kabel geknabbert. Wir sind nicht sicher, was schlimmer ist.</p>
+            <p>Grund: <span th:text="${errorMessage}"></span></p>
+            <p>Während wir das Chaos beseitigen, warum nicht zur <a th:href="@{'/'}" class="alert-link">Startseite</a> zurückkehren und so tun, als wäre nichts passiert? Wir verraten es auch nicht.</p>
+            <div class="py-5">
+                <pre class="text-secondary fs-1">¯\_(ツ)_/¯</pre>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

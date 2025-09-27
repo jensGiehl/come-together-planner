@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Benutzerformular - Come Together Planner</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="container pb-5">
+    <h1 th:if="${user.id == null}">Neuen Benutzer anlegen</h1>
+    <h1 th:if="${user.id != null}">Benutzer bearbeiten</h1>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form th:action="${user.id == null} ? @{/admin/users} : @{/admin/users/update/{id}(id=${user.id})}" th:object="${user}" method="post">
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" class="form-control" id="name" th:field="*{name}" required>
+        </div>
+        <div class="mb-3">
+            <label for="accessCodeword" class="form-label">Zugangscodewort</label>
+            <input type="text" class="form-control" id="accessCodeword" th:field="*{accessCodeword}" required>
+        </div>
+
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Speichern</button>
+            <a href="/admin/users" class="btn btn-secondary">Abbrechen</a>
+        </div>
+    </form>
+
+    <hr class="my-4">
+
+    <div class="mb-3">
+        <h2>Keine Idee? Hier sind ein paar Vorschläge:</h2>
+        <div class="row">
+            <div th:each="entry : ${suggestions}" class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header" th:text="${entry.key}"></div>
+                    <ul class="list-group list-group-flush">
+                        <li th:each="word : ${entry.value}" th:text="${word}" onclick="document.getElementById('accessCodeword').value = this.innerText" class="list-group-item list-group-item-action" style="cursor: pointer;"></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

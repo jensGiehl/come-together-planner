@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Benutzerverwaltung - Come Together Planner</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="container pb-5">
+    <h1>Benutzerverwaltung</h1>
+    <p><a href="/admin/users/new" class="btn btn-success">Neuen Benutzer anlegen</a></p>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Zugangscodewort</th>
+            <th>Aktionen</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.id}"></td>
+            <td th:text="${user.name}"></td>
+            <td th:text="${user.accessCodeword}"></td>
+            <td>
+                <a th:href="@{/admin/users/edit/{id}(id=${user.id})}" class="btn btn-sm btn-primary">Bearbeiten</a>
+                <a th:href="@{/admin/users/delete/{id}(id=${user.id})}" class="btn btn-sm btn-danger" onclick="return confirm('Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?');">Löschen</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <a href="/admin" class="btn btn-secondary">Zurück zum Admin-Bereich</a>
+</div>
+</body>
+</html>

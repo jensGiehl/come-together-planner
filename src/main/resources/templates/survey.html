@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${survey.title}"></title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
+    <script th:src="@{/webjars/sockjs-client/sockjs.min.js}"></script>
+    <script th:src="@{/webjars/stomp-websocket/stomp.min.js}"></script>
+</head>
+<body>
+<div class="container pb-5">
+    <h1 th:text="${survey.title}"></h1>
+    <p th:text="${survey.description}"></p>
+
+    <div class="alert alert-info my-4">
+        Hallo <strong th:text="${userName}"></strong>, bitte gib deine Verfügbarkeit für die folgenden Termine an.
+    </div>
+
+    <div id="top-dates-container" class="mb-4">
+        <h4>Top-Termine</h4>
+        <ul id="top-dates-list" class="list-group">
+            <!-- Top dates will be dynamically inserted here -->
+        </ul>
+    </div>
+
+    <hr>
+
+    <h3>Terminübersicht</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th style="width: 25%;">Datum</th>
+            <th style="width: 20%;">Deine Stimme</th>
+            <th>Übersicht aller Stimmen</th>
+        </tr>
+        </thead>
+        <tbody id="dates-table-body">
+        <tr th:each="view : ${dateViews}" th:id="'date-row-' + ${view.date}">
+            <td th:text="${view.formattedDate}"></td>
+            <td>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-success" th:classappend="${view.userVote?.name() == 'AVAILABLE' ? 'active' : ''}" th:data-date="${view.date}" th:onclick="handleVoteClick(this, 'AVAILABLE')">✓</button>
+                    <button type="button" class="btn btn-outline-warning" th:classappend="${view.userVote?.name() == 'MAYBE' ? 'active' : ''}" th:data-date="${view.date}" th:onclick="handleVoteClick(this, 'MAYBE')">?</button>
+                    <button type="button" class="btn btn-outline-danger" th:classappend="${view.userVote?.name() == 'UNAVAILABLE' ? 'active' : ''}" th:data-date="${view.date}" th:onclick="handleVoteClick(this, 'UNAVAILABLE')">✗</button>
+                </div>
+            </td>
+            <td>
+                <div class="progress" role="progressbar" style="height: 25px; font-size: .85rem;">
+                    <th:block th:if="${view.total == 0}">
+                        <div class="progress-bar bg-secondary d-flex justify-content-center align-items-center" style="width: 100%;">Noch keine Stimmen</div>
+                    </th:block>
+                    <th:block th:if="${view.total > 0}">
+                        <div class="progress-bar bg-success d-flex justify-content-center align-items-center" th:style="'width: ' + (${view.available * 100 / view.total}) + '%'" th:text="${view.available}"></div>
+                        <div class="progress-bar bg-warning text-dark d-flex justify-content-center align-items-center" th:style="'width: ' + (${view.maybe * 100 / view.total}) + '%'" th:text="${view.maybe}"></div>
+                        <div class="progress-bar bg-danger d-flex justify-content-center align-items-center" th:style="'width: ' + (${view.unavailable * 100 / view.total}) + '%'" th:text="${view.unavailable}"></div>
+                    </th:block>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const surveyPublicId = /*[[${survey.publicId}]]*/ 'default';
+    const accessCodeword = /*[[${#authentication.name}]]*/ 'anonymous';
+    let stompClient = null;
+
+    function connect() {
+        const socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/survey/' + surveyPublicId, function (payload) {
+                const results = JSON.parse(payload.body);
+                updateResults(results);
+                updateTopDates(results);
+            });
+        });
+    }
+
+    function handleVoteClick(button, status) {
+        // Visual feedback first
+        const group = button.parentElement;
+        group.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        const date = button.dataset.date;
+
+        // Then send vote
+        sendVote(date, status);
+    }
+
+    function sendVote(date, status) {
+        console.log("Sending vote for date:", date, "with status:", status);
+        const votePayload = {
+            accessCodeword: accessCodeword,
+            date: date,
+            status: status
+        };
+        stompClient.send("/app/vote/" + surveyPublicId, {}, JSON.stringify(votePayload));
+    }
+
+    function updateResults(results) {
+        for (const [date, statuses] of Object.entries(results)) {
+            const available = statuses.AVAILABLE || 0;
+            const maybe = statuses.MAYBE || 0;
+            const unavailable = statuses.UNAVAILABLE || 0;
+            const total = available + maybe + unavailable;
+
+            const progressBar = document.querySelector(`#date-row-${date} .progress`);
+            if (!progressBar) continue;
+
+            if (total === 0) {
+                progressBar.innerHTML = `<div class="progress-bar bg-secondary d-flex justify-content-center align-items-center" style="width: 100%;">Noch keine Stimmen</div>`;
+            } else {
+                const availablePercent = available * 100 / total;
+                const maybePercent = maybe * 100 / total;
+                const unavailablePercent = unavailable * 100 / total;
+
+                progressBar.innerHTML = `
+                    <div class="progress-bar bg-success d-flex justify-content-center align-items-center" style="width: ${availablePercent}%">${available}</div>
+                    <div class="progress-bar bg-warning text-dark d-flex justify-content-center align-items-center" style="width: ${maybePercent}%">${maybe}</div>
+                    <div class="progress-bar bg-danger d-flex justify-content-center align-items-center" style="width: ${unavailablePercent}%">${unavailable}</div>
+                `;
+            }
+        }
+    }
+
+    function updateTopDates(results) {
+        const topDatesList = document.getElementById('top-dates-list');
+        if (!topDatesList) return;
+
+        const sortedDates = Object.entries(results)
+            .map(([date, statuses]) => ({
+                date: new Date(date),
+                available: statuses.AVAILABLE || 0
+            }))
+            .filter(item => item.available > 0)
+            .sort((a, b) => {
+                if (b.available !== a.available) {
+                    return b.available - a.available; // Sort by most available first
+                }
+                return a.date - b.date; // Then by earliest date
+            })
+            .slice(0, 3);
+
+        topDatesList.innerHTML = ''; // Clear previous list
+
+        if (sortedDates.length === 0) {
+            topDatesList.innerHTML = '<li class="list-group-item">Noch keine Stimmen für \'verfügbar\'.</li>';
+            return;
+        }
+
+        const formatter = new Intl.DateTimeFormat('de-DE', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' });
+
+        sortedDates.forEach(item => {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+            
+            const formattedDate = formatter.format(item.date);
+            listItem.textContent = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-success rounded-pill';
+            badge.textContent = `${item.available} verfügbar`;
+            listItem.appendChild(badge);
+
+            topDatesList.appendChild(listItem);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        connect();
+        updateTopDates(/*[[${results}]]*/ {});
+    });
+
+    /*]]>*/
+</script>
+
+</body>
+</html>

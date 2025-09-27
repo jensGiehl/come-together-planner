@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Umfragenverwaltung - Come Together Planner</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="container pb-5">
+    <h1>Umfragenverwaltung</h1>
+    <p><a href="/admin/surveys/new" class="btn btn-success">Neue Umfrage anlegen</a></p>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Titel</th>
+            <th>Public ID</th>
+            <th>Startdatum</th>
+            <th>Enddatum</th>
+            <th>Aktionen</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="survey : ${surveys}">
+            <td th:text="${survey.title}"></td>
+            <td th:text="${survey.publicId}"></td>
+            <td th:text="${survey.startDate}"></td>
+            <td th:text="${survey.endDate}"></td>
+            <td>
+                <a th:href="@{/survey/{publicId}(publicId=${survey.publicId})}" class="btn btn-sm btn-info">Anzeigen</a>
+                <a th:href="@{/admin/surveys/edit/{id}(id=${survey.id})}" class="btn btn-sm btn-primary">Bearbeiten</a>
+                <a th:href="@{/admin/surveys/delete/{id}(id=${survey.id})}" class="btn btn-sm btn-danger">Löschen</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <a href="/admin" class="btn btn-secondary">Zurück zum Admin-Bereich</a>
+</div>
+</body>
+</html>

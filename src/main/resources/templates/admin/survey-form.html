@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Umfrageformular - Come Together Planner</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="container pb-5">
+    <h1 th:if="${survey.id == null}">Neue Umfrage anlegen</h1>
+    <h1 th:if="${survey.id != null}">Umfrage bearbeiten</h1>
+
+    <form th:action="${survey.id == null} ? @{/admin/surveys} : @{/admin/surveys/update/{id}(id=${survey.id})}" th:object="${survey}" method="post">
+
+        <div class="mb-3">
+            <label for="title" class="form-label">Titel</label>
+            <input type="text" class="form-control" id="title" th:field="*{title}" required autofocus>
+        </div>
+        <div class="mb-3">
+            <label for="publicId" class="form-label">Public ID</label>
+            <input type="text" class="form-control" id="publicId" th:field="*{publicId}" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Beschreibung</label>
+            <textarea class="form-control" id="description" th:field="*{description}" rows="3" th:classappend="${#fields.hasErrors('description')} ? 'is-invalid' : ''"></textarea>
+            <div th:if="${#fields.hasErrors('description')}" class="invalid-feedback">
+                <p th:each="err : ${#fields.errors('description')}" th:text="${err}"></p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="startDate" class="form-label">Startdatum</label>
+                <input type="date" class="form-control" id="startDate" th:field="*{startDate}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="endDate" class="form-label">Enddatum</label>
+                <input type="date" class="form-control" id="endDate" th:field="*{endDate}" required th:classappend="${#fields.hasErrors('endDate')} ? 'is-invalid' : ''">
+                <div th:if="${#fields.hasErrors('endDate')}" class="invalid-feedback">
+                    <p th:each="err : ${#fields.errors('endDate')}" th:text="${err}"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Wochentage</label>
+            <div class="form-check" th:each="day : ${T(java.time.DayOfWeek).values()}">
+                <input class="form-check-input" type="checkbox" th:value="${day}" th:field="*{weekdays}" th:id="${'day' + day}">
+                <label class="form-check-label" th:for="${'day' + day}" th:text="${day.getDisplayName(T(java.time.format.TextStyle).FULL, T(java.util.Locale).GERMAN)}"></label>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Ausschlüsse</label>
+            <div id="exclusions-container">
+                <div th:each="exclusion, iterStat : *{exclusions}" class="row mb-2">
+                    <div class="col-md-5">
+                        <input type="date" class="form-control" th:field="*{exclusions[__${iterStat.index}__].startDate}" required>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="date" class="form-control" th:field="*{exclusions[__${iterStat.index}__].endDate}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">Entfernen</button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" id="add-exclusion">Ausschluss hinzufügen</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <a href="/admin/surveys" class="btn btn-secondary">Abbrechen</a>
+    </form>
+
+    <script>
+        document.getElementById('add-exclusion').addEventListener('click', function () {
+            const container = document.getElementById('exclusions-container');
+            const index = container.children.length;
+            const newRow = document.createElement('div');
+            newRow.classList.add('row', 'mb-2');
+            newRow.innerHTML = `
+                <div class="col-md-5">
+                    <input type="date" class="form-control" name="exclusions[${index}].startDate" required>
+                </div>
+                <div class="col-md-5">
+                    <input type="date" class="form-control" name="exclusions[${index}].endDate" required>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">Entfernen</button>
+                </div>
+            `;
+            container.appendChild(newRow);
+        });
+    </script>
+</div>
+</body>
+</html>

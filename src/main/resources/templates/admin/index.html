@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Come Together Planner</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="container pb-5">
+    <h1>Admin-Bereich</h1>
+    <p><a href="/admin/users">Benutzer verwalten</a></p>
+    <p><a href="/admin/surveys">Umfragen verwalten</a></p>
+
+    <h2>Alle Umfragen</h2>
+    <p><a href="/admin/surveys/new" class="btn btn-success">Neue Umfrage erstellen</a></p>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Titel</th>
+            <th>Startdatum</th>
+            <th>Enddatum</th>
+            <th>Aktionen</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="survey : ${surveys}">
+            <td th:text="${survey.title}"></td>
+            <td th:text="${survey.startDate}"></td>
+            <td th:text="${survey.endDate}"></td>
+            <td>
+                <a th:href="@{/survey/{publicId}(publicId=${survey.publicId})}" class="btn btn-sm btn-info">Anzeigen</a>
+                <a th:href="@{/admin/surveys/edit/{id}(id=${survey.id})}" class="btn btn-sm btn-primary">Bearbeiten</a>
+                <form th:action="@{/admin/surveys/delete/{id}(id=${survey.id})}" method="post" style="display:inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" class="btn btn-sm btn-danger">Löschen</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

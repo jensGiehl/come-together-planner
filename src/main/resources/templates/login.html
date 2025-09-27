@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Anmeldung - Come Together Planner</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="text-center mb-4">Anmeldung</h1>
+
+            <div th:if="${param.error}" class="alert alert-danger">
+                Ungültiges Schlüsselwort.
+            </div>
+            <div th:if="${param.logout}" class="alert alert-success">
+                Du wurdest erfolgreich ausgeloggt.
+            </div>
+
+            <p class="text-muted text-center">Gib dein persönliches Schlüsselwort oder das Admin-Passwort ein.</p>
+
+            <form id="loginForm" th:action="@{/perform_login}" method="post">
+                <input type="hidden" name="username" id="username">
+                <input type="hidden" name="password" id="password">
+
+                <div class="mb-3">
+                    <label for="keyword" class="form-label">Schlüsselwort</label>
+                    <div class="input-group">
+                        <input type="password" id="keyword" class="form-control" required autofocus>
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Anmelden</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const keyword = document.getElementById('keyword').value;
+        document.getElementById('username').value = keyword;
+        document.getElementById('password').value = keyword;
+    });
+
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('keyword');
+    const icon = togglePassword.querySelector('i');
+
+    togglePassword.addEventListener('click', function () {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        icon.classList.toggle('bi-eye');
+        icon.classList.toggle('bi-eye-slash');
+    });
+</script>
+
+</body>
+</html>

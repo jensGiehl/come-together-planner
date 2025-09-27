@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Umfrage finden - Come Together Planner</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="container pb-5">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <h1 class="text-center">Umfrage beitreten</h1>
+            <p class="text-center text-muted">Geben Sie den Code Ihrer Umfrage ein, um teilzunehmen.</p>
+
+            <div th:if="${error}" class="alert alert-danger mt-4" th:text="${error}"></div>
+
+            <form action="/find-survey" method="post" class="mt-4">
+                <div class="mb-3">
+                    <label for="surveyCode" class="form-label">Umfrage-Code</label>
+                    <input type="text" id="surveyCode" name="surveyCode" class="form-control" required autofocus>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Zur Umfrage</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
