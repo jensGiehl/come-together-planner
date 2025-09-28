@@ -10,7 +10,7 @@
     </parent>
     <groupId>de.agiehl.cometogether</groupId>
     <artifactId>come-together-planner</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>come-together-planner</name>
     <description>A simple planner for events.</description>
     <properties>
